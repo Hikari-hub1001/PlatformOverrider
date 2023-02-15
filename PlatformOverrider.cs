@@ -11,36 +11,41 @@ namespace OriginalLib
 	public class OverriderSettings
 	{
 		[SerializeField, HideInInspector]
-		public bool UseDefault = false;
+		public bool useDefault = false;
 
 		[SerializeField]
-		public Vector3 Position;
+		public Vector3 position;
 
 		[SerializeField]
-		public Vector2 SizeDelta;
+		public Vector2 sizeDelta = new(100.0f, 100.0f);
+		[SerializeField]
+		public Vector2 offsetMin;
+		[SerializeField]
+		public Vector2 offsetMax;
 
 		[SerializeField]
-		public Vector2 AnchorMin = new(0.5f, 0.5f);
+		public Vector2 anchorMin = new(0.5f, 0.5f);
+		[SerializeField]
+		public Vector2 anchorMax = new(0.5f, 0.5f);
 
 		[SerializeField]
-		public Vector2 AnchorMax = new(0.5f, 0.5f);
+		public Vector2 pivot = new(0.5f, 0.5f);
 
 		[SerializeField]
-		public Vector2 Pivot = new(0.5f, 0.5f);
+		public Vector3 rotation;
 
 		[SerializeField]
-		public Vector3 Rotation;
+		public Vector3 scale = new(1.0f, 1.0f, 1.0f);
 
 		[SerializeField]
-		public Vector3 Scale = new(1, 1, 1);
+		public bool activation = true;
 
-		[SerializeField]
-		public bool Activation = true;
 
 		public OverriderSettings() { }
 		public OverriderSettings(bool useDef)
 		{
-			UseDefault = useDef;
+
+			useDefault = useDef;
 		}
 	}
 
@@ -71,12 +76,15 @@ namespace OriginalLib
 		[SerializeField]
 		public OverriderSettings PS4 = new(true);
 
+		private RectTransform rect;
 
 		private void Start()
 		{
 #if UNITY_EDITOR
+			if (Group == null) return;
 			Debug.Log($"{Group.m_SelecteTab}で実行します");
 			SetRectTransform(Group.m_SelecteTab);
+			rect = GetComponent<RectTransform>();
 #elif UNITY_IOS || UNITY_ANDROID
 				old = Input.deviceOrientation;
 			if(Input.deviceOrientation == DeviceOrientation.Portrait||
@@ -139,12 +147,12 @@ namespace OriginalLib
 				case Platform.MobileLandscape:
 					SetData(MobileLandscape);
 					break;
-/*				case Platform.TabletPortrait:
-					SetData(MobilePortrait);
-					break;
-				case Platform.TabletLandscape:
-					SetData(MobileLandscape);
-					break;*/
+				/*				case Platform.TabletPortrait:
+									SetData(MobilePortrait);
+									break;
+								case Platform.TabletLandscape:
+									SetData(MobileLandscape);
+									break;*/
 				case Platform.MacOS:
 					SetData(MacOS);
 					break;
@@ -162,20 +170,63 @@ namespace OriginalLib
 
 		private void SetData(OverriderSettings data)
 		{
-			((RectTransform)transform).anchoredPosition = data.Position;
-			((RectTransform)transform).sizeDelta = data.SizeDelta;
-			((RectTransform)transform).anchorMin = data.AnchorMin;
-			((RectTransform)transform).anchorMax = data.AnchorMax;
-			((RectTransform)transform).pivot = data.Pivot;
-			((RectTransform)transform).rotation = Quaternion.Euler(data.Rotation) ;
-			((RectTransform)transform).localScale = data.Scale;
-			gameObject.SetActive( data.Activation);
+			if (rect == null)
+			{
+				rect = (RectTransform)transform;
+			}
+/*			rect.anchoredPosition = data.position;
+			rect.sizeDelta = data.sizeDelta;
+			rect.anchorMin = data.anchorMin;
+			rect.anchorMax = data.anchorMax;
+			rect.pivot = data.pivot;
+			rect.rotation = Quaternion.Euler(data.rotation);
+			rect.localScale = data.scale;
+			rect.offsetMin = data.offsetMin;
+			rect.offsetMax = -data.offsetMax;*/
+
+			gameObject.SetActive(data.activation);
+
+
+			rect.anchoredPosition = data.position;
+			rect.anchorMin = data.anchorMin;
+			rect.anchorMax = data.anchorMax;
+			rect.pivot = data.pivot;
+			rect.rotation = Quaternion.Euler(data.rotation);
+			rect.localScale = data.scale;
+
+			Vector2 bk = rect.sizeDelta;
+			if (data.anchorMin.x == data.anchorMax.x)
+			{
+				bk.x = data.sizeDelta.x;
+			}
+			if (data.anchorMin.y == data.anchorMax.y)
+			{
+				bk.y = data.sizeDelta.y;
+			}
+			rect.sizeDelta = bk;
+
+			Vector2 bkmin = rect.offsetMin;
+			Vector2 bkmax = rect.offsetMax;
+			if (data.anchorMin.x != data.anchorMax.x)
+			{
+				bkmin.x = data.offsetMin.x;
+				bkmax.x = -data.offsetMax.x;
+			}
+			if (data.anchorMin.y != data.anchorMax.y)
+			{
+				bkmin.y = data.offsetMin.y;
+				bkmax.y = -data.offsetMax.y;
+			}
+			rect.offsetMin = bkmin;
+			rect.offsetMax = bkmax;
 
 			//デフォルトが使われる場合のみデフォルトデータで更新する
-			if (data.UseDefault)
+			if (data.useDefault)
 			{
 				SetData(Default);
 			}
+
 		}
+
 	}
 }
