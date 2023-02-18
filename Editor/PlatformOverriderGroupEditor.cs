@@ -8,17 +8,6 @@ namespace OriginalLib
 	[CustomEditor(typeof(PlatformOverriderGroup))]
 	public class PlatformOverriderGroupEditor : Editor
 	{
-
-		/*private static string[] TAB_NAMES = new string[] {
-		"Default",
-		"MobilePortrait",
-		"MobileLandscape",
-		"MacOS",
-		"WindowsOS",
-		"PS5",
-		"PS4"
-		};*/
-
 		private PlatformOverriderGroup _target;
 
 		private void Awake()
@@ -39,7 +28,7 @@ namespace OriginalLib
 
 		public static void PratformButton(PlatformOverriderGroup target)
 		{
-			target.m_SelecteTab = (Platform)GUILayout.SelectionGrid((int)target.m_SelecteTab, Enum2Strings(), 3);
+			target.SetPlatform((Platform)GUILayout.SelectionGrid((int)target.m_SelecteTab, Enum2Strings(), 3));
 		}
 
 		private static string[] Enum2Strings()

@@ -40,25 +40,20 @@ namespace OriginalLib
 		[SerializeField]
 		public bool activation = true;
 
-
 		public OverriderSettings() { }
 		public OverriderSettings(bool useDef)
 		{
-
 			useDefault = useDef;
 		}
 	}
 
 	[DisallowMultipleComponent]
-	[ExecuteInEditMode]
-	public class PlatformOverrider : MonoBehaviour
+	public sealed class PlatformOverrider : MonoBehaviour
 	{
-		public PlatformOverriderGroup Group;
-#if UNITY_IOS || UNITY_ANDROID
-		private DeviceOrientation old;
-#endif
+		#region 変数宣言
 		[SerializeField]
 		public OverriderSettings Default = new(false);
+#if UNITY_EDITOR || UNITY_IOS || UNITY_ANDROID
 		[SerializeField]
 		public OverriderSettings MobilePortrait;
 		[SerializeField]
@@ -67,26 +62,33 @@ namespace OriginalLib
 		public OverriderSettings TabletPortrait;
 		[SerializeField]
 		public OverriderSettings TabletLandscape;
+#endif
+#if UNITY_EDITOR || UNITY_STANDALONE_OSX
 		[SerializeField]
 		public OverriderSettings MacOS = new(true);
+#endif
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
 		[SerializeField]
 		public OverriderSettings WindowsOS = new(true);
+#endif
+#if UNITY_EDITOR || UNITY_PS5
 		[SerializeField]
 		public OverriderSettings PS5 = new(true);
+#endif
+#if UNITY_EDITOR || UNITY_PS4
 		[SerializeField]
 		public OverriderSettings PS4 = new(true);
+#endif
 
 		private RectTransform rect;
+		#endregion
 
 		private void Start()
 		{
 #if UNITY_EDITOR
-			if (Group == null) return;
-			Debug.Log($"{Group.m_SelecteTab}で実行します");
-			SetRectTransform(Group.m_SelecteTab);
+
 			rect = GetComponent<RectTransform>();
 #elif UNITY_IOS || UNITY_ANDROID
-				old = Input.deviceOrientation;
 			if(Input.deviceOrientation == DeviceOrientation.Portrait||
 				Input.deviceOrientation == DeviceOrientation.PortraitUpsideDown){
 				SetRectTransform(Platform.MobilePortrait);
@@ -102,34 +104,14 @@ namespace OriginalLib
 			Debug.Log("macOSです");
 			SetRectTransform(Platform.MacOS);
 #elif UNITY_PS4
+			Debug.Log("PS4です");
 			SetRectTransform(Platform.PS4);
 #elif UNITY_PS5
+			Debug.Log("PS5です");
 			SetRectTransform(Platform.PS5);
 #else
 			Debug.Log("その他OSです");
 			SetRectTransform(Platform.Default);
-#endif
-		}
-
-		private void Update()
-		{
-#if UNITY_IOS || UNITY_ANDROID
-			//モバイル端末の際のみ縦横判定を行う
-			//変更した際のみ更新を行う
-			if(Input.deviceOrientation != old)
-			{
-				old = Input.deviceOrientation;
-				if(old == DeviceOrientation.Portrait||
-					old == DeviceOrientation.PortraitUpsideDown)
-				{
-					SetRectTransform(Platform.MobilePortrait);
-				}
-				else if(old == DeviceOrientation.LandscapeLeft||
-					old == DeviceOrientation.LandscapeRight)
-				{
-					SetRectTransform(Platform.MobileLandscape);
-				}
-			}
 #endif
 		}
 
@@ -141,6 +123,8 @@ namespace OriginalLib
 				case Platform.Default:
 					SetData(Default);
 					break;
+#if UNITY_EDITOR || UNITY_IOS || UNITY_ANDROID
+
 				case Platform.MobilePortrait:
 					SetData(MobilePortrait);
 					break;
@@ -153,18 +137,31 @@ namespace OriginalLib
 								case Platform.TabletLandscape:
 									SetData(MobileLandscape);
 									break;*/
+#endif
+#if UNITY_EDITOR || UNITY_STANDALONE_OSX
+
 				case Platform.MacOS:
 					SetData(MacOS);
 					break;
+#endif
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+
 				case Platform.WindowsOS:
 					SetData(WindowsOS);
 					break;
+#endif
+#if UNITY_EDITOR || UNITY_PS5
+
 				case Platform.PS5:
 					SetData(PS5);
 					break;
+#endif
+#if UNITY_EDITOR || UNITY_PS4
+
 				case Platform.PS4:
 					SetData(PS4);
 					break;
+#endif
 			}
 		}
 
@@ -174,18 +171,8 @@ namespace OriginalLib
 			{
 				rect = (RectTransform)transform;
 			}
-/*			rect.anchoredPosition = data.position;
-			rect.sizeDelta = data.sizeDelta;
-			rect.anchorMin = data.anchorMin;
-			rect.anchorMax = data.anchorMax;
-			rect.pivot = data.pivot;
-			rect.rotation = Quaternion.Euler(data.rotation);
-			rect.localScale = data.scale;
-			rect.offsetMin = data.offsetMin;
-			rect.offsetMax = -data.offsetMax;*/
 
 			gameObject.SetActive(data.activation);
-
 
 			rect.anchoredPosition = data.position;
 			rect.anchorMin = data.anchorMin;
@@ -225,8 +212,6 @@ namespace OriginalLib
 			{
 				SetData(Default);
 			}
-
 		}
-
 	}
 }

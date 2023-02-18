@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+ï»¿#if UNITY_EDITOR
 using System;
 using System.Reflection;
 using UnityEditor;
@@ -7,12 +7,14 @@ using UnityEngine;
 namespace OriginalLib
 {
 	[ExecuteInEditMode]
-	[CustomEditor(typeof(PlatformOverrider))]//Šg’£‚·‚éƒNƒ‰ƒX‚ğw’è
+	[CustomEditor(typeof(PlatformOverrider))]//æ‹¡å¼µã™ã‚‹ã‚¯ãƒ©ã‚¹ã‚’æŒ‡å®š
 	public class PlatformOverriderEditor : Editor
 	{
 
 		private PlatformOverrider _target;
 		private OverriderSettings os;
+
+		private PlatformOverriderGroup pog;
 
 		private bool _anchorOpen = true;
 
@@ -23,54 +25,36 @@ namespace OriginalLib
 		}
 
 		/// <summary>
-		/// Inspector‚ÌGUI‚ğXV
+		/// Inspectorã®GUIã‚’æ›´æ–°
 		/// </summary>
 		public override void OnInspectorGUI()
 		{
-			//@ƒVƒŠƒAƒ‰ƒCƒYƒIƒuƒWƒFƒNƒg‚ÌXV
+			//ã€€ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ›´æ–°
 			serializedObject.Update();
 
-			EditorGUI.BeginChangeCheck();
-
-			//OverriderGroup‚Ìİ’è‚±‚±‚©‚ç
-			//OverriderGroup‚ğİ’è‚·‚éƒtƒB[ƒ‹ƒh
-			_target.Group = EditorGUILayout.ObjectField("Group", _target.Group, typeof(PlatformOverriderGroup), true) as PlatformOverriderGroup;
-
-			if (_target.Group == null)
+			GetPOG();
+			if (pog == null)
 			{
-				//–¢İ’è‚È‚çƒƒbƒZ[ƒW
-				EditorGUILayout.HelpBox("Please set the PlatformOverrideGroup.", MessageType.Info);
+				//è¦ªã«POGãŒãªã„å ´åˆ
+				EditorGUILayout.HelpBox("Please set the 'PlatformOverriderGroup' component to the parent element.", MessageType.Info);
 				return;
 			}
 			else
 			{
-				//Groupİ’è‚Íƒ{ƒ^ƒ“‚ğ•\¦
-				PlatformOverriderGroupEditor.PratformButton(_target.Group);
+				//Groupï¿½İ’èï¿½Íƒ{ï¿½^ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½
+				PlatformOverriderGroupEditor.PratformButton(pog);
 			}
+			EditorGUI.BeginChangeCheck();
 
-			if (_target.enabled)
-			{
-				//OverriderGroup‚Ìİ’è‚±‚±‚Ü‚Å
-				if (os != null && os.useDefault)
-				{
-					//ƒfƒtƒHƒ‹ƒg‚ğg‚¤‚Æ‚«‚Ì‚İƒfƒtƒHƒ‹ƒg‚ğƒZƒbƒg
-					_target.SetRectTransform(Platform.Default);
-				}
-				else
-				{
-					//‚»‚Ì‘¼‚Í‚»‚ê‚¼‚ê‚Ìİ’è‚ğg—p
-					_target.SetRectTransform(((Platform)_target.Group?.m_SelecteTab));
-				}
-			}
-			os = SetSetting(_target.Group.m_SelecteTab);
+			os = SetSetting(pog.m_SelecteTab);
 
-			//Defaultƒvƒ‰ƒbƒgƒtƒH[ƒ€ˆÈŠO‚Å‚Ì‚İ
-			//Default‚ğg—p‚·‚é‚©‘I‚×‚é
-			EditorGUI.BeginDisabledGroup(_target.Group?.m_SelecteTab == Platform.Default);
+			//Defaultãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ ä»¥å¤–ã§ã®ã¿
+			//Defaultã‚’ä½¿ç”¨ã™ã‚‹ã‹é¸ã¹ã‚‹
+			EditorGUI.BeginDisabledGroup(pog.m_SelecteTab == Platform.Default);
 			os.useDefault = EditorGUILayout.Toggle("UseDefault", os.useDefault);
 			EditorGUI.EndDisabledGroup();
 
-			//Default‚ğg—p‚µ‚È‚¢ê‡‚Ì‚İŠe©İ’è‰Â”\
+			//Defaultã‚’ä½¿ç”¨ã—ãªã„å ´åˆã®ã¿å„è‡ªè¨­å®šå¯èƒ½
 			EditorGUI.BeginDisabledGroup(os.useDefault);
 			Layout();
 			EditorGUI.EndDisabledGroup();
@@ -87,7 +71,7 @@ namespace OriginalLib
 		}
 
 		/// <summary>
-		/// ƒCƒ“ƒXƒyƒNƒ^[‚Å‚ÌŒ©‚¦•û‚ğ’²®‚·‚é
+		/// ã‚¤ãƒ³ã‚¹ãƒšã‚¯ã‚¿ãƒ¼ã§ã®è¦‹ãˆæ–¹ã‚’èª¿æ•´ã™ã‚‹
 		/// </summary>
 		void Layout()
 		{
@@ -101,41 +85,41 @@ namespace OriginalLib
 
 			EditorGUILayout.BeginHorizontal();
 
-			#region ‰¡•ûŒü‚Ìİ’èƒtƒB[ƒ‹ƒh
+			#region æ¨ªæ–¹å‘ã®è¨­å®šãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 			EditorGUILayout.BeginVertical();
 			if (os.anchorMin.x == os.anchorMax.x)
 			{
-				//ƒAƒ“ƒJ[‚ÌÅ¬‚ÆÅ‘å‚ªˆê’v‚µ‚Ä‚¢‚éê‡‚ÍÀ•W‚Æ•‚ğİ’è
+				//ã‚¢ãƒ³ã‚«ãƒ¼ã®æœ€å°ã¨æœ€å¤§ãŒä¸€è‡´ã—ã¦ã„ã‚‹å ´åˆã¯åº§æ¨™ã¨å¹…ã‚’è¨­å®š
 				pos.x = CustomFloatField("Pos X", os.position.x);
 				size.x = CustomFloatField("Width", os.sizeDelta.x);
 			}
 			else if (os.anchorMin.x != os.anchorMax.x)
 			{
-				//ƒAƒ“ƒJ[‚ÌÅ¬‚ÆÅ‘å‚ª•sˆê’v‚Ìê‡‚Í¶‚Æ‰E‚Ì‹ó‚«‚ğİ’è
+				//ã‚¢ãƒ³ã‚«ãƒ¼ã®æœ€å°ã¨æœ€å¤§ãŒä¸ä¸€è‡´ã®å ´åˆã¯å·¦ã¨å³ã®ç©ºãã‚’è¨­å®š
 				offMin.x = CustomFloatField("Left", os.offsetMin.x);
 				offMax.x = CustomFloatField("Right", os.offsetMax.x);
 			}
 			EditorGUILayout.EndVertical();
 			#endregion
 
-			#region c•ûŒü‚Ìİ’èƒtƒB[ƒ‹ƒh
+			#region ç¸¦æ–¹å‘ã®è¨­å®šãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 			EditorGUILayout.BeginVertical();
 			if (os.anchorMin.y == os.anchorMax.y)
 			{
-				//ƒAƒ“ƒJ[‚ÌÅ¬‚ÆÅ‘å‚ªˆê’v‚µ‚Ä‚¢‚éê‡‚ÍÀ•W‚Æ‚‚³‚ğİ’è
+				//ã‚¢ãƒ³ã‚«ãƒ¼ã®æœ€å°ã¨æœ€å¤§ãŒä¸€è‡´ã—ã¦ã„ã‚‹å ´åˆã¯åº§æ¨™ã¨é«˜ã•ã‚’è¨­å®š
 				pos.y = CustomFloatField("Pos Y", os.position.y);
 				size.y = CustomFloatField("Height", os.sizeDelta.y);
 			}
 			else if (os.anchorMin.y != os.anchorMax.y)
 			{
-				//ƒAƒ“ƒJ[‚ÌÅ¬‚ÆÅ‘å‚ª•sˆê’v‚Ìê‡‚Íã‚Æ‰º‚Ì‹ó‚«‚ğİ’è
+				//ã‚¢ãƒ³ã‚«ãƒ¼ã®æœ€å°ã¨æœ€å¤§ãŒä¸ä¸€è‡´ã®å ´åˆã¯ä¸Šã¨ä¸‹ã®ç©ºãã‚’è¨­å®š
 				offMax.y = CustomFloatField("Top", os.offsetMax.y);
 				offMin.y = CustomFloatField("Bottom", os.offsetMin.y);
 			}
 			EditorGUILayout.EndVertical();
 			#endregion
 
-			#region ZÀ•Wİ’èƒtƒB[ƒ‹ƒh
+			#region Zåº§æ¨™è¨­å®šãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 			EditorGUILayout.BeginVertical();
 			pos.z = CustomFloatField("Pos Z", os.position.z);
 			EditorGUILayout.EndVertical();
@@ -253,6 +237,20 @@ namespace OriginalLib
 			os.activation = _target.gameObject.activeSelf;
 		}
 
+		void GetPOG()
+		{
+			if (pog == null)
+			{
+				Transform parent = _target.transform.parent;
+				while (true)
+				{
+					pog = parent.GetComponent<PlatformOverriderGroup>();
+					if (pog != null) return;
+					parent = parent.parent;
+					if (parent == null) return;
+				}
+			}
+		}
 
 	}
 }
