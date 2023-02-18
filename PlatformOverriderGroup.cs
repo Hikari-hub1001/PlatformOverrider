@@ -65,7 +65,7 @@ namespace OriginalLib
 			foreach (Transform child in tran.GetComponentInChildren<Transform>())
 			{
 				var po = child.GetComponent<PlatformOverrider>();
-				if (po != null)
+				if (po != null && po.enabled)
 				{
 					po.SetRectTransform(m_SelecteTab);
 				}
